@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import pandas as pd
+from tqdm.notebook import tqdm
+import time
+import requests
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-f", "--filename", dest="filename", default="customers_woowup.csv", help="Filename")
+parser.add_argument("-ef", "--exitfilename", dest="exitfilename", default="customers_woowup.csv", help="Exit Filename")
+parser.add_argument("-s", "--separator", dest="separator", default=",", help="Separator")
+
+args = parser.parse_args()
+
+def cleanName(name):
+    where_ellipsis = name.find(' ')
+    if where_ellipsis == -1:
+        return name
+    return name[:where_ellipsis]
+
+def setGender(value):
+    value = str(value)
+    value = cleanName(value)
+    apiResponse = requests.get('https://genderize.woowup.com/customer?apikey=4YqpEOggefkqALxFhr7d&first_name='+value)
+    apiResponse = apiResponse.json()
+    gender = apiResponse['gender']
+    if gender == "female":
+        gender = "F"
+    elif gender == "male":
+        gender = "M"
+    else:
+        gender = "null"
+        print(apiResponse)
+    return gender
+
+if __name__ == '__main__':
+    df = pd.read_csv(args.filename,sep=args.separator,engine="python")
+    tqdm.pandas()
+    df = df.dropna(subset=['first_name', 'last_name'])
+    df = df[df["first_name"].str.contains("s.a") == False]
+    df = df[df["first_name"].str.contains("s.r.l") == False]
+    df = df[df["first_name"].str.contains("grupo") == False]
+    df = df[df["first_name"].str.contains("ceria") == False]
+    df = df.drop(df[df.first_name.str.contains(r'[@#&$%+-/*?]')].index)
+    df = df.drop(df[df.last_name.str.contains(r'[@#&$%+-/*?]')].index)
+    df = df[(df["first_name"].str.len() < 30) & (df["first_name"].str.len() > 3)]
+    df['gender'] = df['first_name'].progress_apply(setGender)
+    df.to_csv(args.exitfilename)
