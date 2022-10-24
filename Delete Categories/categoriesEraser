@@ -28,9 +28,7 @@ def deleteCategories():
 
 
 if __name__ == '__main__':
-    # completa la apikey del cliente
     df = pd.read_csv(args.categories, sep=args.separator, engine="python")
     categories = df.codigo.tolist()
     apiKey = args.apiKey  # API KEY
-    # completa los id de categorías que deseas borrar. Usate el archivo
     deleteCategories()
