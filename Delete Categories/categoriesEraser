@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+import pandas as pd
+import argparse
+import requests
+import json
+from tqdm.notebook import tqdm
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-k", "--key", dest="apiKey", help="ApiKey")
+parser.add_argument("-c", "--categories", dest="categories", default="categories_woowup.csv", help="CategoriesFile")
+parser.add_argument("-s", "--separator", dest="separator", default=",", help="Separator")
+
+args = parser.parse_args()
+
+def deleteCategories():
+    url = 'https://api.woowup.com/apiv3/categories'
+    headers = {'content-type': 'application/json', "Authorization": "Basic " + str(apiKey),
+               'accept': 'application/json'}
+    for n in categories:
+        payload = json.dumps({
+            "code": str(n)})
+        r = requests.delete(url, data=payload, headers=headers)
+        print(payload)
+        print(r.text)
+
+    print("Categorías eliminadas")
+
+
+if __name__ == '__main__':
+    # completa la apikey del cliente
+    df = pd.read_csv(args.categories, sep=args.separator, engine="python")
+    categories = df.codigo.tolist()
+    apiKey = args.apiKey  # API KEY
+    # completa los id de categorías que deseas borrar. Usate el archivo
+    deleteCategories()
