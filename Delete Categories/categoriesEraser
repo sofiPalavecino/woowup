@@ -3,7 +3,6 @@ import pandas as pd
 import argparse
 import requests
 import json
-from tqdm.notebook import tqdm
 
 parser = argparse.ArgumentParser()
 
